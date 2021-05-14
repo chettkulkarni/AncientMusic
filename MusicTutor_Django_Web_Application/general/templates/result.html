@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}
+Result of Prediction
+{% endblock %}
+
+{% block body %}
+
+
+
+<div>
+
+        <h3 style="color: white; ">Result</h3>
+
+        <div style="background-color: rgba(245, 245, 245, 0.2); border-radius: 25px">
+
+            
+
+            <form action="getRecommendations" method="post" enctype="multipart/form-data">
+                <br>
+
+                <label style="color: whitesmoke;" id="raga" name="selectedRaga" value={{ selectedRaga }}>Selected Raga : {{ selectedRaga }}</label>
+
+                <br>
+
+                <label style="color: whitesmoke;" id="raga" name="raga" value={{ raga }}>Predicted Closest Raga : {{ raga }}</label>
+
+
+                <input type="text" name="raga" value="{{ raga }}" hidden/>
+                <input type="text" name="selectedRaga" value="{{ selectedRaga }}" hidden/>
+                <input type="text" name="confidence" value="{{ confidence }}" hidden/>
+                <div style="color: whitesmoke"> Confidence score : {{ confidence }} </div>
+                <br>
+                <input type="submit" style="border-radius: 20px;" class="btn btn-success" value="Get Recommendations">
+                <br>
+            </form>
+            <p> Get Recommendations of Selected and predicted Ragas</p>
+        </div>
+    </center>
+
+ {% if selectedRagaRecommendations != ragaRecommendations %}
+
+        <div class="row">
+        <h3 style="color: white; ">Recommendations based on Selected Raga : {{ selectedRaga }}</h3>
+        {% for i in selectedRagaRecommendations %}
+        <div class="col-12 col-xl-4" style=" border-radius: 20px; padding: 1%">
+            <iframe width="420" height="315"
+            src={{i}}>
+            </iframe>
+
+        </div>
+        {% endfor %}
+        </div>
+
+    {% endif %}
+
+    {% if ragaRecommendations %}
+
+
+        <div class="row">
+        <h3 style="color: white; ">Recommendations based on Predicted Raga: {{ raga }}</h3>
+        {% for i in ragaRecommendations %}
+        <div class="col-12 col-xl-4" style=" border-radius: 20px; padding: 1%">
+            <iframe width="420" height="315"
+            src={{i}}>
+            </iframe>
+
+        </div>
+        {% endfor %}
+        </div>
+
+
+    {% endif %}
+</div>
+
+
+
+{% endblock %}

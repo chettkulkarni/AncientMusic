@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Uploads
+{% endblock %}
+
+{% block body %}
+
+    {% for i in songList %}
+        <div class="row justify-content-center" style="padding-left: 25%;padding-right: 25%;" >
+<div class="card align-self-center" style="background-color: rgba(245, 245, 245, 0.2); border-radius: 25px"  >
+
+
+            <label style="color: whitesmoke; font-size: larger">File : {{ i.fileName }}</label>
+            <br>
+            <label style="color: whitesmoke; font-size: larger">Predicted Raga : {{ i.predictedRaga }}</label>
+            <br>
+            <label style="color: whitesmoke; font-size: larger">Confidence Score : {{ i.confidenceScore }}</label>
+            <br>
+            <center>
+            <audio controls>
+                <source src={{ i.songLink }} type="audio/mp3">
+            </audio>
+            </center>
+        </div>
+        </div>
+        <br>
+    {% endfor %}
+    
+{% endblock %}

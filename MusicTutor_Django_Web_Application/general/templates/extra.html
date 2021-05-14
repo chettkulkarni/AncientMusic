@@ -1,0 +1,146 @@
+<!-- record audio live -->
+<div class="col">
+    <div>
+        <i class="bi bi-mic" style="font-size: 10rem;" id="mic"></i>
+        {#                    <button type="button" id="mic">Get Microphone</button>#}
+        <i class="bi bi-mic-fill" style="font-size: 10rem;" id="record" hidden></i>
+        <br>
+        <label id="recorderText">Get Microphone</label>
+        {#                    <button type="button" id="record" hidden>Record</button>#}
+        <br>
+        <br>
+        <div id="lastRecordedSong" hidden>Last recorded song!</div>
+        <ul id="recordings" style="list-style-type: none"></ul>
+
+    </div>
+</div>
+</div>
+
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        const getMic = document.getElementById('mic');
+        const recordButton = document.getElementById('record');
+        const list = document.getElementById('recordings');
+        const recorderText = document.getElementById("recorderText");
+        const lastRecordedSong = document.getElementById("lastRecordedSong");
+
+
+        if ('MediaRecorder' in window) {
+            getMic.addEventListener('click', async () => {
+                getMic.setAttribute('hidden', 'hidden');
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        audio: true,
+                        video: false
+                    });
+                    const mimeType = 'audio/webm';
+                    let chunks = [];
+                    const recorder = new MediaRecorder(stream, {type: 'audio/wav'});
+                    recorder.addEventListener('dataavailable', event => {
+                        if (typeof event.data === 'undefined') return;
+                        if (event.data.size === 0) return;
+                        chunks.push(event.data);
+                    });
+                    recorder.addEventListener('stop', () => {
+                        const recording = new Blob(chunks, {
+                            type: mimeType
+                        });
+                        renderRecording(recording, list);
+                        chunks = [];
+                    });
+                    recordButton.removeAttribute('hidden');
+                    recorderText.innerText = "Click here to start recording...";
+                    recordButton.addEventListener('click', () => {
+                        console.log("fdgdg", recorder.state)
+                        if (recorder.state === 'inactive') {
+                            recorder.start();
+                            recorderText.innerText = "Recording...Click here to finish";
+                            recordButton.classList.remove("bi-mic-fill");
+                            recordButton.classList.add("bi-stop-circle");
+
+                        } else {
+                            recorder.stop();
+                            lastRecordedSong.removeAttribute('hidden');
+                            recorderText.innerText = "Click here to retry recording again";
+                            {#recordButton.innerText = 'Record';#}
+                            recordButton.classList.remove("bi-stop-circle");
+                            recordButton.classList.add("bi-mic-fill");
+                        }
+                    });
+                } catch {
+                    renderError(
+                        'You denied access to the microphone so this demo will not work.'
+                    );
+                }
+            });
+        } else {
+            renderError(
+                "Sorry, your browser doesn't support the MediaRecorder API, so this demo will not work."
+            );
+        }
+    });
+
+    function renderError(message) {
+        const main = document.querySelector('main');
+        main.innerHTML = `<div class="error"><p>${message}</p></div>`;
+    }
+
+    function renderRecording(blob, list) {
+
+        const blobUrl = URL.createObjectURL(blob);
+        const li = document.createElement('li');
+        const audio = document.createElement('audio');
+        const anchor = document.createElement('a');
+        anchor.setAttribute('href', blobUrl);
+        const now = new Date();
+        anchor.setAttribute(
+            'download',
+            `recording-${now.getFullYear()}-${(now.getMonth() + 1)
+                .toString()
+                .padStart(2, '0')}-${now
+                .getDay()
+                .toString()
+                .padStart(2, '0')}--${now
+                .getHours()
+                .toString()
+                .padStart(2, '0')}-${now
+                .getMinutes()
+                .toString()
+                .padStart(2, '0')}-${now
+                .getSeconds()
+                .toString()
+                .padStart(2, '0')}.webm`
+        );
+        {#anchor.innerText = 'Download';#}
+        audio.setAttribute('src', blobUrl);
+        console.log(blobUrl);
+        audio.setAttribute('controls', 'controls');
+        li.appendChild(audio);
+        li.appendChild(anchor);
+        list.innerHTML = "";
+        list.appendChild(li);
+
+
+        let senderId = document.getElementById('senderSong');
+        console.log(list);
+        senderId.value = blobUrl;
+
+        //on rec.stop()
+        {#console.log(blob);#}
+        var xhttp = new XMLHttpRequest();
+        xhttp.open("POST", "", true);
+        var data = new FormData();
+        data.append('data', blob, 'audio_blob');
+        {#xhttp.send(data);#}
+        {#xhttp.onreadystatechange = function () {#}
+        {#    if (this.readyState == 4 && this.status == 200) {#}
+        {#console.log(this.responseText);#}
+        {#    }};#}
+
+    }
+
+</script>
+
+
+<!-- end audio record -->

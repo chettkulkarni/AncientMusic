@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block body %}
+
+
+
+    <div>
+
+            <h3 style="color: white; ">Predict Raga</h3>
+            <div>
+                <form action="" method="post" enctype="multipart/form-data">
+                    <br>
+                    <input type="file" id="mySong" name="mySong" class="btn btn-info" style="border-radius: 20px; ">
+                    <br>
+                    <input type="submit" style="border-radius: 20px;" class="btn btn-success">
+                </form>
+            </div>
+    </div>
+
+    {% if raga %}
+        <center><div>  Raga is : {{ raga }} </div></center>
+    {% endif %}
+
+
+
+    <div style=" color: #5E5694; margin-top: 5%">
+        <center>
+
+            {% if songList %}
+                <h3 style="color: white; ">Recent Uploads</h3>
+                <div class="card shad"
+                     style="border-radius: 30px;width: 100%;overflow-y: hidden;overflow-x: scroll; padding: 1%; background-color: transparent">
+
+                    <div class="container-fluid">
+                        <div class="row flex-row flex-nowrap">
+                            {% for i,j in songList %}
+                                <div class="col-12 ">
+                                    <div class="card card-block h-100 shad"
+                                         style="padding: 1%; margin: 1%; border-radius: 20px; ">
+                                        <div class="card-body">
+                                            <center>
+                                                <p style="font-style: oblique;color: whitesmoke">Name : {{ i }}</p>
+                                                <audio controls>
+                                                    <source src={{ j }} type="audio/mp3">
+                                                </audio>
+                                            </center>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                </div>
+            {% endif %}
+
+        </center>
+    </div>
+
+{% endblock %}

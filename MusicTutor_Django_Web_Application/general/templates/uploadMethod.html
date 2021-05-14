@@ -1,0 +1,297 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Upload Method
+{% endblock %}
+
+{% block body %}
+
+    <div class="row justify-content-center" style="padding-left: 25%;padding-right: 25%;">
+        <div class="card align-self-center" style="background-color: rgba(245, 245, 245, 0.2); border-radius: 25px">
+
+            <h3 style="color: white; ">Upload Song</h3>
+
+
+            {#        Radio button to select divs#}
+
+
+            <div id="myRadioGroup">
+
+                File <input type="radio" name="cars" checked="checked" value="fileDiv"/>
+
+                Record <input type="radio" name="cars" value="recordDiv"/>
+
+
+            </div>
+
+
+            {#            script#}
+            <script>
+
+                $(document).ready(function () {
+                    $('#recordDiv').hide();
+                    $("input[name='cars']").click(function () {
+
+                        var test = $(this).val();
+                        $(".desc").hide();
+                        $("#" + test).show();
+                    });
+                });
+            </script>
+
+
+            {#   file upload div#}
+            <div id="fileDiv" class="desc">
+                <form action="{% url 'uploadSong' %}" method="post" enctype="multipart/form-data">
+
+                    <br>
+                    <label id="raga" name="raga" value={{ ragaType }}>Selected Raga : {{ ragaType }}</label>
+                    <br>
+
+                    <div class="row">
+                        <div class="col">
+                            <label>
+                                <input type="file" name="mySong" id="mySong" style="display: none;"/>
+                                <input type="text" name="selectedRaga" value="{{ ragaType }}" hidden/>
+
+                                <i class="bi bi-upload" style="font-size: 10rem;"></i>
+
+                                <input type="button" style="display: none;" value="Upload"
+                                       onclick="document.getElementById('mySong').click();"/>
+                            </label>
+                            <br>
+                            <button type="submit" style="border-radius: 20px; " class="btn btn-success" disabled>
+                                Upload
+                            </button>
+
+                        </div>
+                        <script>
+                            $(document).ready(
+                                function () {
+                                    $('input:file').change(
+                                        function () {
+
+                                            var fileInput = document.getElementById('mySong');
+
+                                            var filePath = fileInput.value;
+
+                                            // Allowing file type
+                                            var allowedExtensions =
+                                                /(\.mp3)$/i;
+
+                                            if (!allowedExtensions.exec(filePath)) {
+                                                alert('Invalid file type');
+                                                fileInput.value = '';
+                                                return false;
+                                            }
+
+
+                                            if ($(this).val()) {
+                                                $('button:submit').attr('disabled', false);
+                                                // or, as has been pointed out elsewhere:
+                                                // $('input:submit').removeAttr('disabled');
+                                            }
+                                        }
+                                    );
+                                });
+
+
+                        </script>
+                        {% if error %}
+                            <div style="color: whitesmoke"> Error: {{ error }} </div>
+                        {% endif %}
+
+                        <br>
+                    </div>
+
+                </form>
+            </div>
+
+
+            {#  end of file upload div#}
+
+
+            {#        live record#}
+
+
+            <div id="recordDiv" class="desc">
+                <form action="{% url 'processRecord' %}" method="post" enctype="multipart/form-data">
+                    <!-- record audio live -->
+                    <div class="col">
+                        <div>
+                            <br>
+                            <label id="raga" name="raga" value={{ ragaType }}>Selected Raga : {{ ragaType }}</label>
+                            <input type="text" name="selectedRaga" value="{{ ragaType }}" hidden/>
+                            <br>
+                            <i class="bi bi-mic" style="font-size: 10rem;" id="mic"></i>
+                            {#                    <button type="button" id="mic">Get Microphone</button>#}
+                            <i class="bi bi-mic-fill" style="font-size: 10rem;" id="record" hidden></i>
+                            <br>
+                            <label id="recorderText">Get Microphone</label>
+                            {#                    <button type="button" id="record" hidden>Record</button>#}
+                            <br>
+                            <br>
+                            <div id="lastRecordedSong" hidden>Last recorded song!</div>
+                            <ul id="recordings" style="list-style-type: none"></ul>
+                            <p>note: Please record the song for more than 35 seconds!</p>
+                            <button type="submit" style="border-radius: 20px; " class="btn btn-success">Upload</button>
+                        </div>
+                    </div>
+
+
+                    <script>
+                        window.addEventListener('DOMContentLoaded', () => {
+                            const getMic = document.getElementById('mic');
+                            const recordButton = document.getElementById('record');
+                            const list = document.getElementById('recordings');
+                            const recorderText = document.getElementById("recorderText");
+                            const lastRecordedSong = document.getElementById("lastRecordedSong");
+
+
+                            if ('MediaRecorder' in window) {
+                                getMic.addEventListener('click', async () => {
+                                    getMic.setAttribute('hidden', 'hidden');
+                                    try {
+                                        const stream = await navigator.mediaDevices.getUserMedia({
+                                            audio: true,
+                                            video: false
+                                        });
+                                        const mimeType = 'audio/webm';
+                                        let chunks = [];
+                                        const recorder = new MediaRecorder(stream, {type: 'audio/x-mpeg-3'});
+                                        recorder.addEventListener('dataavailable', event => {
+                                            if (typeof event.data === 'undefined') return;
+                                            if (event.data.size === 0) return;
+                                            chunks.push(event.data);
+                                        });
+                                        recorder.addEventListener('stop', () => {
+                                            const recording = new Blob(chunks, {
+                                                type: mimeType
+                                            });
+                                            renderRecording(recording, list);
+                                            chunks = [];
+                                        });
+                                        recordButton.removeAttribute('hidden');
+                                        recorderText.innerText = "Click here to start recording...";
+                                        recordButton.addEventListener('click', () => {
+                                            console.log("fdgdg", recorder.state)
+                                            if (recorder.state === 'inactive') {
+                                                recorder.start();
+                                                recorderText.innerText = "Recording...Click here to finish";
+                                                recordButton.classList.remove("bi-mic-fill");
+                                                recordButton.classList.add("bi-stop-circle");
+
+                                            } else {
+                                                recorder.stop();
+                                                lastRecordedSong.removeAttribute('hidden');
+                                                recorderText.innerText = "Click here to retry recording again";
+                                                {#recordButton.innerText = 'Record';#}
+                                                recordButton.classList.remove("bi-stop-circle");
+                                                recordButton.classList.add("bi-mic-fill");
+                                            }
+                                        });
+                                    } catch {
+                                        renderError(
+                                            'You denied access to the microphone so this demo will not work.'
+                                        );
+                                    }
+                                });
+                            } else {
+                                renderError(
+                                    "Sorry, your browser doesn't support the MediaRecorder API, so this demo will not work."
+                                );
+                            }
+                        });
+
+                        function renderError(message) {
+                            const main = document.querySelector('main');
+                            main.innerHTML = `<div class="error"><p>${message}</p></div>`;
+                        }
+
+                        function renderRecording(blob, list) {
+
+                            const blobUrl = URL.createObjectURL(blob);
+                            const li = document.createElement('li');
+                            const audio = document.createElement('audio');
+                            const anchor = document.createElement('a');
+                            anchor.setAttribute('href', blobUrl);
+                            const now = new Date();
+                            anchor.setAttribute(
+                                'download',
+                                `recording-${now.getFullYear()}-${(now.getMonth() + 1)
+                                    .toString()
+                                    .padStart(2, '0')}-${now
+                                    .getDay()
+                                    .toString()
+                                    .padStart(2, '0')}--${now
+                                    .getHours()
+                                    .toString()
+                                    .padStart(2, '0')}-${now
+                                    .getMinutes()
+                                    .toString()
+                                    .padStart(2, '0')}-${now
+                                    .getSeconds()
+                                    .toString()
+                                    .padStart(2, '0')}.webm`
+                            );
+                            {#anchor.innerText = 'Download';#}
+                            audio.setAttribute('src', blobUrl);
+                            console.log(blobUrl);
+                            audio.setAttribute('controls', 'controls');
+                            li.appendChild(audio);
+                            li.appendChild(anchor);
+                            list.innerHTML = "";
+                            list.appendChild(li);
+
+
+                            let senderId = document.getElementById('senderSong');
+                            console.log(list);
+                            {#senderId.value = blobUrl;#}
+
+                            //on rec.stop()
+                            {#console.log(blob);#}
+                            {#var xhttp = new XMLHttpRequest();#}
+                            {#xhttp.open("POST", "", true);#}
+                            var form = new FormData();
+                            form.append('data', blob, 'audio_blob');
+                            console.log(form.get('data'))
+
+
+                            {##send req#}
+
+                            $.ajax({
+                                url: '{% url 'recordSong' %}',
+                                type: 'POST',
+                                data: form,
+                                processData: false,
+                                contentType: false,
+                                success: function (data) {
+                                    console.log('response' + JSON.stringify(data));
+                                },
+                                error: function () {
+                                    // handle error case here
+                                }
+                            });
+                            {#xhttp.send(data);#}
+                            {#xhttp.onreadystatechange = function () {#}
+                            {#    if (this.readyState == 4 && this.status == 200) {#}
+                            {#console.log(this.responseText);#}
+                            {#    }};#}
+
+                        }
+
+
+                    </script>
+
+
+                    <!-- end audio record -->
+                </form>
+            </div>
+
+        </div>
+    </div>
+
+
+
+
+{% endblock %}
